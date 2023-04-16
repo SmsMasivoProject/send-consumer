@@ -5,7 +5,8 @@ env:
   DOCKER_USER: ${{secrets.DOCKER_USERNAME}}
   DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
 jobs:
-  push-image-to-docker-hub:  # job name
+  deploy-send-consumer:  # job name
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest  # runner name : (ubuntu latest version) 
     steps:
     - uses: actions/checkout@v2 # first action : checkout source code
