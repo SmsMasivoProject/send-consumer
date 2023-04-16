@@ -2,34 +2,26 @@ from threading import Thread
 import pika
 import json
 from helpers.smsc_helper import SMSCHelper
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 import os
 
-# load_dotenv()
-SMS_HOST_USER = '10.90.13.170'
-SMS_HOST_PORT = '18013'
-SMS_HOST_SYSTEM_ID = 'applista'
-SMS_HOST_PASSWORD = 'Lista*21'
-RABBIT_CREDENTIALS_USER='guest'
-RABBIT_CREDENTIALS_PASSWORD='guest'
-RABBIT_CREDENTIALS_HOST='rabbitmq'
-RABBIT_CREDENTIALS_PORT=5672
+load_dotenv()
 
-# credentials = pika.PlainCredentials(os.getenv("RABBIT_CREDENTIALS_USER"),os.getenv("RABBIT_CREDENTIALS_PASSWORD"))
-# connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.getenv("RABBIT_CREDENTIALS_HOST"), port=os.getenv("RABBIT_CREDENTIALS_PORT"), credentials= credentials))
-credentials = pika.PlainCredentials(RABBIT_CREDENTIALS_USER, RABBIT_CREDENTIALS_PASSWORD)
-connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBIT_CREDENTIALS_HOST, port=RABBIT_CREDENTIALS_PORT, credentials= credentials))
+credentials = pika.PlainCredentials(os.getenv("RABBIT_CREDENTIALS_USER"),os.getenv("RABBIT_CREDENTIALS_PASSWORD"))
+connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.getenv("RABBIT_CREDENTIALS_HOST"), port=os.getenv("RABBIT_CREDENTIALS_PORT"), credentials= credentials))
+# credentials = pika.PlainCredentials(RABBIT_CREDENTIALS_USER, RABBIT_CREDENTIALS_PASSWORD)
+# connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBIT_CREDENTIALS_HOST, port=RABBIT_CREDENTIALS_PORT, credentials= credentials))
 channel = connection.channel()
 channel.exchange_declare('send-sms-topic', durable=True, exchange_type='topic')
 
 def send_sms(ch,method,properties,body):
     data = json.loads(body.decode('utf-8'))
-    # connection = SMSCHelper(host=os.getenv("SMS_HOST_USER"), port=os.getenv("SMS_HOST_PORT"),
-    #                            system_id=os.getenv("SMS_HOST_SYSTEM_ID"),
-    #                            password=os.getenv("SMS_HOST_PASSWORD"), source_number=data['data']['payload']['source'])
-    connection = SMSCHelper(host=SMS_HOST_USER, port=SMS_HOST_PORT,
-                               system_id=SMS_HOST_SYSTEM_ID,
-                               password= SMS_HOST_PASSWORD, source_number=data['data']['payload']['source'])
+    connection = SMSCHelper(host=os.getenv("SMS_HOST_USER"), port=os.getenv("SMS_HOST_PORT"),
+                               system_id=os.getenv("SMS_HOST_SYSTEM_ID"),
+                               password=os.getenv("SMS_HOST_PASSWORD"), source_number=data['data']['payload']['source'])
+    # connection = SMSCHelper(host=SMS_HOST_USER, port=SMS_HOST_PORT,
+    #                            system_id=SMS_HOST_SYSTEM_ID,
+    #                            password= SMS_HOST_PASSWORD, source_number=data['data']['payload']['source'])
     index = 0
     for item in data['data']['payload']['destinations']:
         _ =  connection.send_short_message(message=item['body'], destination_number=item['destination'])
