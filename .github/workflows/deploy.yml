@@ -1,18 +1,21 @@
-on: push
-name: deploy
+name: This a workflow title 
+on: [push] # When pushing to any branch then run this action
+# Env variable
+env:
+  DOCKER_USER: ${{secrets.DOCKER_USERNAME}}
+  DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
 jobs:
-  deploy:
-    name: Deploy send consumer
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
+  push-image-to-docker-hub:  # job name
+    runs-on: ubuntu-latest  # runner name : (ubuntu latest version) 
     steps:
-      - uses: actions/checkout@master
-      - name: build and push to docker
-        uses: docker/build-push-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          respository: raymelguerra/send-consumer
-          tag_with_ref: true
-          tag_with_sha: true
-          tags: ${{ github.sha }}
+    - uses: actions/checkout@v2 # first action : checkout source code
+    - name: docker login
+      run: | # log into docker hub account
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD  
+    - name: Get current date # get the date of the build
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
+    - name: Build the Docker image # push The image to the docker hub
+      run: docker build . --file Dockerfile --tag $DOCKER_USER/send-consumer:${{ steps.date.outputs.date }}
+    - name: Docker Push
+      run: docker push $DOCKER_USER/send-consumer:${{ steps.date.outputs.date }}
